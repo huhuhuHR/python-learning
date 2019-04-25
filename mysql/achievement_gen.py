@@ -2,7 +2,7 @@ from faker import Faker
 import random
 import numpy as np
 
-import time
+import pymysql
 
 import sys
 
@@ -53,5 +53,27 @@ def get_fake_data():
     sys.stdout = temp  # 输出重定向回consle
 
 
+config = {
+    "host": "localhost",
+    "user": "root",
+    "password": "Niejing",
+    "database": "localhost"
+}
 if __name__ == '__main__':
-    get_fake_data()
+    sql = "insert into achievement_source(idcard,name,chinese,math,english,multiple,total)values(%s,%s,%s,%s,%s,%s,%s) "
+    db = pymysql.connect(**config)
+    cursor = db.cursor()
+    usersvalues = []
+    for i in range(10):  # 这里以生成60条数据为测试
+        id_num = get_random_id()
+        name = get_random_name()
+        Chinese = get_random_score()
+        Math = get_random_score()
+        English = get_random_score()
+        Zonghe = get_random_score2()
+        Total = Chinese + Math + English + Zonghe
+        usersvalues.append((id_num, name, Chinese, Math, English, Zonghe, Total))
+    cursor.executemany(sql, usersvalues)
+    db.commit()
+    cursor.close()
+    db.close()
