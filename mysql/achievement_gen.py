@@ -5,6 +5,8 @@ import numpy as np
 import pymysql
 
 import sys
+import time
+import threading
 
 
 # 生成随机姓名
@@ -54,17 +56,90 @@ def get_fake_data():
 
 
 config = {
-    "host": "localhost",
+    "host": "10.0.53.154",
     "user": "root",
-    "password": "Niejing",
-    "database": "localhost"
+    "password": "Unidc@2018",
+    "database": "datax"
 }
-if __name__ == '__main__':
+
+
+# 200 13
+# 500 35.46814322471619 数据量5000,总共耗时：351.85799074172974
+# 1000 69.13909006118774 数据量9000,总共耗时：615.8100788593292
+def wayOne(g, s):
+    start = time.time()
     sql = "insert into achievement_source(idcard,name,chinese,math,english,multiple,total)values(%s,%s,%s,%s,%s,%s,%s) "
     db = pymysql.connect(**config)
     cursor = db.cursor()
+    group = g
+    size = s
+    id_num = get_random_id()
+    name = get_random_name()
+    Chinese = get_random_score()
+    Math = get_random_score()
+    English = get_random_score()
+    Zonghe = get_random_score2()
+    Total = Chinese + Math + English + Zonghe
+    for j in range(group):
+        gStart = time.time()
+        usersvalues = []
+        for i in range(size):  # 这里以生成60条数据为测试
+            key = str(j) + str(i)
+            usersvalues.append(
+                (str(id_num) + key, str(name) + key, Chinese, Math, English, Zonghe, Total))
+        cursor.executemany(sql, usersvalues)
+        db.commit()
+        print("第%s批结束,耗时%s" % (str(j + 1), str(time.time() - gStart)))
+    cursor.close()
+    db.close()
+    print("数据量%s,总共耗时：%s" % (str(group * size), str(time.time() - start)))
+
+
+def wayTwo():
+    start = time.time()
+    g = 5
+    db = pymysql.connect(**config)
+    cursor = db.cursor()
+    for g in range(1):
+        sql = "insert into achievement_source(idcard,name,chinese,math,english,multiple,total)values"
+        gStart = time.time()
+        for i in range(989):
+            id_num = get_random_id()
+            name = get_random_name()
+            Chinese = get_random_score()
+            Math = get_random_score()
+            English = get_random_score()
+            Zonghe = get_random_score2()
+            Total = Chinese + Math + English + Zonghe
+            sql += "(" + str(id_num) + ",'" + str(name) + "'," + str(Chinese) + "," + str(Math) + "," + str(
+                English) + "," + str(Zonghe) + "," + str(Total) + "),"
+        id_num = get_random_id()
+        name = get_random_name()
+        Chinese = get_random_score()
+        Math = get_random_score()
+        English = get_random_score()
+        Zonghe = get_random_score2()
+        Total = Chinese + Math + English + Zonghe
+        sql += "(" + str(id_num) + ",'" + str(name) + "'," + str(Chinese) + "," + str(Math) + "," + str(
+            English) + "," + str(Zonghe) + "," + str(Total) + ")"
+        cursor.execute(sql)
+        # print(sql)
+        sql = ""
+        db.commit()
+        print("第%s批结束,耗时%s" % (str(10000), str(time.time() - gStart)))
+    cursor.close()
+    db.close()
+    print("数据量%s,总共耗时：%s" % (str(g * 10000), str(time.time() - start)))
+
+
+def theadInsert(size, j):
+    print("runing" + str(j))
+    db = pymysql.connect(**config)
+    cursor = db.cursor()
+    gStart = time.time()
     usersvalues = []
-    for i in range(10):  # 这里以生成60条数据为测试
+    sql = "insert into achievement_source(idcard,name,chinese,math,english,multiple,total)values(%s,%s,%s,%s,%s,%s,%s) "
+    for i in range(size):  # 这里以生成60条数据为测试
         id_num = get_random_id()
         name = get_random_name()
         Chinese = get_random_score()
@@ -77,3 +152,12 @@ if __name__ == '__main__':
     db.commit()
     cursor.close()
     db.close()
+    print("第%s批结束,耗时%s" % (str(j + 1), str(time.time() - gStart)))
+
+
+if __name__ == '__main__':
+    wayOne(900, 10000)
+    # for j in range(group):
+    #     t = threading.Thread(target=theadInsert, args=(size, j))
+    #     t.start()
+    # # print("数据量%s,总共耗时：%s" % (str(group * size), str(time.time() - start)))
