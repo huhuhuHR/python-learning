@@ -56,10 +56,10 @@ def get_fake_data():
 
 
 config = {
-    "host": "10.0.53.154",
+    "host": "127.0.0.1",
     "user": "root",
-    "password": "Unidc@2018",
-    "database": "datax"
+    "password": "Niejing",
+    "database": "compateall"
 }
 
 
@@ -156,7 +156,7 @@ def theadInsert(size, j):
 
 
 if __name__ == '__main__':
-    wayOne(900, 10000)
+    wayOne(1, 100)
     # for j in range(group):
     #     t = threading.Thread(target=theadInsert, args=(size, j))
     #     t.start()
