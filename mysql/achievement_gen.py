@@ -6,7 +6,6 @@ import pymysql
 
 import sys
 import time
-import threading
 
 
 # 生成随机姓名
