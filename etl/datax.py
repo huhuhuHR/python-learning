@@ -32,7 +32,7 @@ LOGBACK_FILE = ("%s/conf/logback.xml") % (DATAX_HOME)
 DEFAULT_JVM = "-Xms1g -Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=%s/log" % (DATAX_HOME)
 DEFAULT_PROPERTY_CONF = "-Dfile.encoding=UTF-8 -Dlogback.statusListenerClass=ch.qos.logback.core.status.NopStatusListener -Djava.security.egd=file:///dev/urandom -Ddatax.home=%s -Dlogback.configurationFile=%s" % (
     DATAX_HOME, LOGBACK_FILE)
-ENGINE_COMMAND = "java -server ${jvm} %s -classpath %s  ${params} com.alibaba.datax.core.Engine -mode ${mode} -jobid ${jobid} -job ${job}" % (
+ENGINE_COMMAND = "java -server ${jvm} %s -classpath %s  ${params} com.alibaba.datax.core.Engine -mode ${mode} -jobid ${jobid} -job ${job} -compareKey ${compareKey} -maxValue ${maxValue}" % (
     DEFAULT_PROPERTY_CONF, CLASS_PATH)
 REMOTE_DEBUG_CONFIG = "-Xdebug -Xrunjdwp:transport=dt_socket,server=y,address=9999"
 
@@ -87,6 +87,14 @@ def getOptionParser():
                                   action="store", default="standalone",
                                   help="Set job runtime mode such as: standalone, local, distribute. "
                                        "Default mode is standalone.")
+    # 扩展
+    prodEnvOptionGroup.add_option("-v", "--maxValue", metavar="<job unique id>", dest="maxValue", action="store",
+                                  default="",
+                                  help="增量字段最大值.")
+    prodEnvOptionGroup.add_option("-c", "--compareKey", metavar="<job unique id>", dest="compareKey", action="store",
+                                  default="",
+                                  help="增量字段.")
+
     prodEnvOptionGroup.add_option("-p", "--params", metavar="<parameter used in job config>",
                                   action="store", dest="params",
                                   help='Set job parameter, eg: the source tableName you want to set it by command, '
@@ -183,7 +191,10 @@ def buildStartCommand(options, args):
 
     if options.mode:
         commandMap["mode"] = options.mode
-
+    if options.maxValue:
+        commandMap["maxValue"] = options.maxValue
+    if options.compareKey:
+        commandMap["compareKey"] = options.compareKey
     # jobResource 可能是 URL，也可能是本地文件路径（相对,绝对）
     jobResource = args[0]
     if not isUrl(jobResource):
@@ -201,7 +212,6 @@ def buildStartCommand(options, args):
     commandMap["jvm"] = tempJVMCommand
     commandMap["params"] = jobParams
     commandMap["job"] = jobResource
-
     return Template(ENGINE_COMMAND).substitute(**commandMap)
 
 
@@ -229,8 +239,8 @@ if __name__ == "__main__":
     startCommand = buildStartCommand(options, args)
     print(startCommand)
 
-    child_process = subprocess.Popen(startCommand, shell=True)
-    register_signal()
-    (stdout, stderr) = child_process.communicate()
-
-    sys.exit(child_process.returncode)
+    # child_process = subprocess.Popen(startCommand, shell=True)
+    # register_signal()
+    # (stdout, stderr) = child_process.communicate()
+    #
+    # sys.exit(child_process.returncode)

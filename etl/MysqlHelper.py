@@ -194,16 +194,25 @@ if __name__ == '__main__':
         # mysql.dropTable('achievement_source')
         # mysql.dropTable('achievement_target')
         # mysql.createTable()
-        # sql = "insert into achievement_source(idcard,name,chinese,math,english,multiple,total)values(%s,%s,%s,%s,%s,%s,%s) "
-        # id_num = gen.get_random_id()
-        # name = gen.get_random_name()
-        # Chinese = gen.get_random_score()
-        # Math = gen.get_random_score()
-        # English = gen.get_random_score()
-        # Zonghe = gen.get_random_score2()
-        # Total = Chinese + Math + English + Zonghe
-        # mysql.insert(sql, (id_num, name, Chinese, Math, English, Zonghe, Total))
-        print(mysql.descColumnNames("achievement_source"))
+        values = []
+        sql = "insert into achievement_source(idcard,name,chinese,math,english,multiple,total)values(%s,%s,%s,%s,%s,%s,%s) "
+        for i in range(10000):
+            id_num = gen.get_random_id()
+            name = gen.get_random_name()
+            Chinese = gen.get_random_score()
+            Math = gen.get_random_score()
+            English = gen.get_random_score()
+            Zonghe = gen.get_random_score2()
+            Total = Chinese + Math + English + Zonghe
+            values.append((id_num, name, Chinese, Math, English, Zonghe, Total))
+            if len(values) % 1000:
+                mysql.cur.executemany(sql, values)
+                mysql.conn.commit()
+                values.clear()
+        if len(values) > 0:
+            mysql.cur.executemany(sql, values)
+            mysql.conn.commit()
+        # print(mysql.descColumnNames("achievement_source"))
     except Exception as ex:
         mysql.conn.rollback()
         print(ex)
